@@ -1,0 +1,15 @@
+
+html {
+  height: 100%;
+}
+body {
+  height: 100vh;
+}
+
+app-root {
+  display: block;
+  height: 100vh;
+  width: 100%;
+}
+
+
