@@ -1,4 +1,5 @@
 <div class="text-editor-container">
-      <textarea id="text-editor-input-field">
-      </textarea>
+      <div #fake_textarea id="fake_textarea" contenteditable (input)="onChange($event)" (keydown)="onKeyChange($event)" >
+        <app-content></app-content>
+      </div>
 </div>

@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import {TextEditorComponent} from "./text-editor/text-editor.component";
+import {ContentComponent} from "./content/content.component";
 
 @Component({
   selector: 'app-root',

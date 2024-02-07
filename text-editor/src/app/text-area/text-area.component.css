@@ -9,12 +9,13 @@
   margin-bottom: 30px;
 }
 
-.text-editor-container > textarea {
+.text-editor-container > #fake_textarea {
   width: 90%;
   height: 100%;
   outline: none;
   resize: none;
   border:none;
   padding: 10px 10px 10px 10px;
+  background: white;
 
 }
