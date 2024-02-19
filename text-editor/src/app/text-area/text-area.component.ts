@@ -137,9 +137,8 @@ export class TextAreaComponent {
     console.log(this.states);
     if (this.textEditor) {
       const editor = this.textEditor.nativeElement;
-      console.log(editor!.parentNode!);
-      // const selection = window.getSelection();
-      // // const range = selection?.getRangeAt(0);
+      const selection = window.getSelection();
+      const range = selection?.getRangeAt(0);
       // const newRange = document.createRange();
 
       if (this.states.bold) {
@@ -147,40 +146,41 @@ export class TextAreaComponent {
         const getBoldElement = document.getElementsByClassName(
           `bold ${indexBold}`,
         );
-        console.log(getBoldElement);
         if (getBoldElement.length === 0) {
           boldText = document.createElement('strong');
           boldText.classList.add(`bold`);
           boldText.classList.add(`${indexBold}`);
-
-          if (true) {
-            const getNullElement = document.getElementsByClassName(
-              `null ${indexNull - 1}`,
-            );
-            if (getNullElement.length > 0) {
-              console.log('adjacent');
-              // const newRange = document.createRange();
-              // boldText.innerText = `${event.key}`;
-              boldText.innerHTML = `${event.key}`;
-              getNullElement[0].insertAdjacentElement('afterend', boldText);
-              console.log(editor.childNodes);
-              console.log(boldText);
-              const curretPosition = getCurrentCursorPosition(editor);
-              setCurrentCursorPosition(curretPosition + 1, editor);
-              editor.focus();
-              // const selection1 = window.getSelection();
-              // newRange.setStart(editor.childNodes[1], 1);
-              // newRange.collapse(true);
-              // selection?.removeAllRanges();
-              // selection?.addRange(newRange);
-              // console.log('new position...');
+          console.log(range);
+          let classElement;
+          if (range) {
+            if (range.startContainer.childNodes.length > 0) {
+              console.log('child value');
+              classElement = range.startContainer.childNodes[0].childNodes;
+            } else {
+              console.log('node value');
+              if (range.startContainer.parentElement) {
+                classElement =
+                  range.startContainer.parentElement.attributes[0].nodeValue;
+              }
             }
+          }
+          console.log(classElement);
+
+          const element = document.getElementsByClassName(`${classElement}`);
+
+          if (element.length > 0) {
+            console.log('adjacent');
+
+            element[0].insertAdjacentElement('afterend', boldText);
+            console.log(editor.childNodes);
+            console.log(boldText);
+            const curretPosition = getCurrentCursorPosition(editor);
+            setCurrentCursorPosition(curretPosition + 1, editor);
+            editor.focus();
           }
         } else {
           console.log('tutaj tez to dziala');
           boldText = getBoldElement[0];
-          // console.log(getCurrentCursorPosition('fake_textarea'));
-          // newRangeNullText = true;
         }
       }
 
@@ -191,8 +191,6 @@ export class TextAreaComponent {
           `null ${indexNull}`,
         );
 
-        console.log(getNullElement);
-        console.log(getNullElement.length);
         if (getNullElement.length === 0) {
           nullTextElement = document.createElement(`span`);
           nullTextElement.classList.add(`null`);
@@ -203,38 +201,33 @@ export class TextAreaComponent {
             editor.appendChild(nullTextElement);
             const curretPosition = getCurrentCursorPosition('fake_textarea');
             setCurrentCursorPosition(curretPosition + 1, editor);
-            // newRange.setStart(editor.childNodes[0], 1);
-            // newRange.collapse(true);
-            // selection?.removeAllRanges();
-            // selection?.addRange(newRange);
-            if (indexNull > 0) {
-              console.log('adjacent');
-              const getBoldElement = document.getElementsByClassName(
-                `bold ${indexBold - 1}`,
-              );
-              if (getBoldElement.length > 0) {
-                console.log('adjacent');
-                getBoldElement[0].insertAdjacentElement(
-                  'afterend',
-                  nullTextElement,
-                );
-                console.log(editor.childNodes);
-                const curretPosition =
-                  getCurrentCursorPosition('fake_textarea');
-                setCurrentCursorPosition(curretPosition + 1, editor);
+          }
 
-                // newRange.setStart(editor.childNodes[2], 1);
-                // newRange.collapse(true);
-                // selection?.removeAllRanges();
-                // selection?.addRange(newRange);
-                // console.log('new position...');
-
-                // editor.setRangeText(` `, range.startOffset, range.endOffset);
+          if (indexNull > 0) {
+            let classElement;
+            if (range) {
+              console.log(range);
+              if (range.startContainer.childNodes.length > 0) {
+                classElement = range.startContainer.childNodes[0].childNodes;
+              } else {
+                console.log('node value');
+                if (range.startContainer.parentElement) {
+                  classElement =
+                    range.startContainer.parentElement.attributes[0].nodeValue;
+                }
               }
+            }
+
+            const element = document.getElementsByClassName(`${classElement}`);
+
+            if (element.length > 0) {
+              element[0].insertAdjacentElement('afterend', nullTextElement);
+              console.log(editor.childNodes);
+              const curretPosition = getCurrentCursorPosition('fake_textarea');
+              setCurrentCursorPosition(curretPosition + 1, editor);
             }
           }
         } else {
-          console.log('yolo');
           nullTextElement = getNullElement[0];
           newRangeBoldText = true;
           console.log(getCurrentCursorPosition('fake_textarea'));
@@ -242,12 +235,6 @@ export class TextAreaComponent {
       }
     }
   }
-
-  // this.htmlContent = '';
-  // const char = event.key;
-  // this.posistion += 1;
-  // this.text = char;
-  // this.htmlContent = `${this.text}`;
 
   onChange(event: Event) {
     const newValur = (event.target as HTMLInputElement).innerText;
