@@ -135,109 +135,137 @@ export class TextAreaComponent {
 
   onKeyChange(event: KeyboardEvent) {
     console.log(this.states);
-    if (this.textEditor) {
-      const editor = this.textEditor.nativeElement;
-      const selection = window.getSelection();
-      const range = selection?.getRangeAt(0);
-      // const newRange = document.createRange();
+    if (!this.textEditor) return;
 
-      if (this.states.bold) {
-        let boldText;
-        const getBoldElement = document.getElementsByClassName(
-          `bold ${indexBold}`,
-        );
-        if (getBoldElement.length === 0) {
-          boldText = document.createElement('strong');
-          boldText.classList.add(`bold`);
-          boldText.classList.add(`${indexBold}`);
-          console.log(range);
-          let classElement;
-          if (range) {
-            if (range.startContainer.childNodes.length > 0) {
-              console.log('child value');
-              classElement = range.startContainer.childNodes[0].childNodes;
-            } else {
-              console.log('node value');
-              if (range.startContainer.parentElement) {
-                classElement =
-                  range.startContainer.parentElement.attributes[0].nodeValue;
-              }
-            }
-          }
-          console.log(classElement);
+    const editor = this.textEditor.nativeElement;
+    const selection = window.getSelection();
+    if (!selection) return;
 
-          const element = document.getElementsByClassName(`${classElement}`);
+    const range = selection.getRangeAt(0);
+    if (!range) return;
 
-          if (element.length > 0) {
-            console.log('adjacent');
+    if (this.states.bold) {
+      this.handleBold(range, editor, event.key, indexBold);
+    }
 
-            element[0].insertAdjacentElement('afterend', boldText);
-            console.log(editor.childNodes);
-            console.log(boldText);
-            const curretPosition = getCurrentCursorPosition(editor);
-            setCurrentCursorPosition(curretPosition + 1, editor);
-            editor.focus();
-          }
-        } else {
-          console.log('tutaj tez to dziala');
-          boldText = getBoldElement[0];
-        }
-      }
-
-      if (this.states.null) {
-        console.log(indexNull);
-        let nullTextElement;
-        const getNullElement = document.getElementsByClassName(
-          `null ${indexNull}`,
-        );
-
-        if (getNullElement.length === 0) {
-          nullTextElement = document.createElement(`span`);
-          nullTextElement.classList.add(`null`);
-          nullTextElement.classList.add(`${indexNull}`);
-          console.log(nullTextElement);
-          nullTextElement.innerHTML = `${event.key}`;
-          if (indexNull === 0) {
-            editor.appendChild(nullTextElement);
-            const curretPosition = getCurrentCursorPosition('fake_textarea');
-            setCurrentCursorPosition(curretPosition + 1, editor);
-          }
-
-          if (indexNull > 0) {
-            let classElement;
-            if (range) {
-              console.log(range);
-              if (range.startContainer.childNodes.length > 0) {
-                classElement = range.startContainer.childNodes[0].childNodes;
-              } else {
-                console.log('node value');
-                if (range.startContainer.parentElement) {
-                  classElement =
-                    range.startContainer.parentElement.attributes[0].nodeValue;
-                }
-              }
-            }
-
-            const element = document.getElementsByClassName(`${classElement}`);
-
-            if (element.length > 0) {
-              element[0].insertAdjacentElement('afterend', nullTextElement);
-              console.log(editor.childNodes);
-              const curretPosition = getCurrentCursorPosition('fake_textarea');
-              setCurrentCursorPosition(curretPosition + 1, editor);
-            }
-          }
-        } else {
-          nullTextElement = getNullElement[0];
-          newRangeBoldText = true;
-          console.log(getCurrentCursorPosition('fake_textarea'));
-        }
-      }
+    if (this.states.null) {
+      this.handleNull(range, editor, event.key, indexNull);
     }
   }
 
-  onChange(event: Event) {
-    const newValur = (event.target as HTMLInputElement).innerText;
+  handleBold(
+    range: Range,
+    editor: HTMLElement,
+    key: string,
+    indexBold: number,
+  ) {
+    const boldClassName = `bold`;
+    let createNewElement = false;
+
+    let classElement = this.getClassElementFromRange(range);
+    if (!classElement) {
+      const boldTextElement = this.createAndInsertElement(
+        'strong',
+        boldClassName,
+        indexBold,
+      );
+      editor.appendChild(boldTextElement);
+      this.updateCursorPosition(editor);
+      return;
+    }
+
+    const element = document.getElementsByClassName(`${classElement}`)[0];
+    if (!(classElement === `${boldClassName} ${indexBold}`)) {
+      createNewElement = true;
+    }
+
+    if (element && createNewElement) {
+      const boldTextElement = this.createAndInsertElement(
+        'strong',
+        boldClassName,
+        indexBold,
+      );
+      boldTextElement.innerHTML = key;
+      element.insertAdjacentElement('afterend', boldTextElement);
+      this.updateCursorPosition(editor);
+    }
+
+    if (element && !createNewElement) {
+      return;
+    }
+  }
+
+  handleNull(
+    range: Range,
+    editor: HTMLElement,
+    key: string,
+    indexNull: number,
+  ) {
+    const nullClassName = `null`;
+    let createNewElement = false;
+
+    let classElement = this.getClassElementFromRange(range);
+    if (!classElement) {
+      const nullTextElement = this.createAndInsertElement(
+        'span',
+        nullClassName,
+        indexNull,
+      );
+      nullTextElement.innerHTML = key;
+      editor.appendChild(nullTextElement);
+      this.updateCursorPosition(editor);
+      return;
+    }
+
+    const element = document.getElementsByClassName(`${classElement}`)[0];
+    if (!(classElement === `${nullClassName} ${indexNull}`)) {
+      createNewElement = true;
+    }
+
+    if (element && createNewElement) {
+      const nullTextElement = this.createAndInsertElement(
+        'span',
+        nullClassName,
+        indexNull,
+      );
+      nullTextElement.innerHTML = key;
+      element.insertAdjacentElement('afterend', nullTextElement);
+      this.updateCursorPosition(editor);
+    }
+
+    if (element && !createNewElement) {
+      return;
+    }
+  }
+
+  getClassElementFromRange(
+    range: Range,
+  ): string | null | NodeListOf<ChildNode> {
+    if (range.startContainer.childNodes.length > 0) {
+      return range.startContainer.childNodes[0].childNodes;
+    } else {
+      if (range.startContainer.parentElement) {
+        return range.startContainer.parentElement.attributes[0].nodeValue;
+      }
+    }
+    return null;
+  }
+
+  createAndInsertElement(
+    tagName: string,
+    className: string,
+    index: number,
+  ): HTMLElement {
+    const element = document.createElement(tagName);
+    element.classList.add(className);
+    element.classList.add(`${index}`);
+    return element;
+  }
+
+  updateCursorPosition(editor: HTMLElement) {
+    const currentPosition = getCurrentCursorPosition('fake_textarea');
+    setCurrentCursorPosition(currentPosition + 1, editor);
+    editor.focus();
   }
 
   ngOnInit() {
