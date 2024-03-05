@@ -29,9 +29,13 @@ export class TextEditorService {
   public setNullText = new BehaviorSubject<IState>(defaultState);
   notifyNullTextChange = this.setNullText.asObservable();
 
+  public setNewElement = new BehaviorSubject(true);
+  notifyNewElement = this.setNewElement.asObservable();
+
   constructor() {}
 
   setBold() {
+    console.log(defaultState);
     if (defaultState.values.includes('null')) {
       defaultState.values = defaultState.values.filter(
         (value) => value !== 'null',

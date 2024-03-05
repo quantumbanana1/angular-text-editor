@@ -12,27 +12,52 @@
   margin-top:10px;
   margin-bottom: 10px;
   width: 50%;
+  height: 40%;
   display: flex;
   flex-direction: row;
   gap: 10px;
   justify-content: center;
 
+}
 
+.options {
+  position: relative;
 }
 
 .options > div {
-  width: 30px;
-  height: 30px;
-
+  position: relative;
+  display: inline-block;
+  border-radius: 10px;
 }
-.options > div > input {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
+
+.options > div input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
   width: 100%;
   height: 100%;
+  cursor: pointer;
+  border-radius: 10px;
+}
+
+.options > div label {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.options > div img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* Adjust as needed */
+}
+
+input[type="checkbox"]:checked + label img {
+  border-bottom: 2px solid #5ce8fa
 
 }
+
+
+
 
 .footer {
   width: 90%;
