@@ -5,13 +5,9 @@ import { FormsModule } from '@angular/forms';
 import { last } from 'rxjs';
 
 let indexNull = 0;
-let prevIndexNull = 0;
 let indexBold = 0;
+let indexBreak = 0
 let newRangeBoldText = false;
-let newRangeNullText = false;
-let numberOfCharacters = 0;
-let newNullElement = true;
-let newBoldElemenet = true;
 let creatingNewElement = true;
 
 interface ITextState {
@@ -125,7 +121,6 @@ function updateRange(className: string) {
   range.setStart(element1, 0);
   range.setEnd(element1, 1);
   selection.addRange(range);
-  const posistion = selection.focusOffset;
   console.log(range);
 }
 
@@ -158,6 +153,29 @@ export class TextAreaComponent {
   value: string = '';
   constructor(private textEditorService: TextEditorService) {}
 
+  applyStateToSelectedText(text: string, state: string) {
+    console.log('apply state to selected text');
+    const formattedText = `<strong class="bold ${indexBold}">${text}</strong>`;
+    document.execCommand('insertHTML', false, formattedText);
+  }
+  handleSelection() {
+    console.log('handle selection');
+    const selection = window.getSelection();
+    const range = selection?.getRangeAt(0);
+    console.log('handle Selection', selection, range);
+    const selectedText = selection?.toString();
+    if (selectedText) {
+      console.log(selectedText);
+      if (this.states.bold) {
+        return this.applyStateToSelectedText(selectedText, 'bold');
+      }
+
+      if (this.states.null) {
+        return this.applyStateToSelectedText(selectedText, 'null');
+      }
+    }
+  }
+
   handleClick(event: Event) {
     console.log('click');
     let newElement = false;
@@ -167,6 +185,7 @@ export class TextAreaComponent {
     const length = range.endContainer.textContent?.length;
     const endOffSet = range.endOffset;
     console.log(this.states);
+    console.log(range);
 
     if (length === endOffSet) {
       newElement = true;
@@ -217,13 +236,123 @@ export class TextAreaComponent {
   }
 
   onKeyChange(event: KeyboardEvent) {
-    numberOfCharacters++;
-    console.log(this.states);
+    console.log(event.key);
     if (!this.textEditor) return;
+
+
 
     const editor = this.textEditor.nativeElement;
     const selection = window.getSelection();
     if (!selection) return;
+
+
+    if (event.key === 'Enter') {
+      console.log('hitting enter');
+      const element = document.createElement('br');
+      element.classList.add('break');
+      element.classList.add(`${indexBreak}`);
+      const selection = window.getSelection();
+      const range: Range = selection?.getRangeAt(0);
+      const previousElement = this.getClassElementFromRange(range!);
+
+      if (!previousElement) {
+        editor.appendChild(element);
+        indexBreak += 1;
+        return;
+      }
+      console.log(previousElement);
+      const length = range.endContainer.textContent?.length;
+      const endOffSet = range.endOffset;
+      console.log(length, endOffSet);
+
+      if (length  > endOffSet) {
+        range.insertNode(element);
+        event.preventDefault();
+        indexBreak += 1;
+        return;
+      }
+
+      if (length === endOffSet) {
+        const editor = this.textEditor.nativeElement;
+        let node = editor
+        let newRange = document.createRange();
+        let numberOfBreaks = 0
+        const foundElement = document.getElementsByClassName(previousElement)[0];
+        foundElement.insertAdjacentElement('afterend', element);
+        console.log('found element', foundElement);
+        newRange.selectNode(editor);
+        console.log(newRange);
+        console.log(node);
+        let nodeList = newRange.endContainer.childNodes;
+        let length = nodeList.length;
+
+        if (length ===  1 ) {
+          node = nodeList[0]
+          nodeList = node.childNodes;
+          length = nodeList.length;
+          console.log(nodeList)
+        }
+
+        let count = 0
+
+        while (length > count) {
+          if (nodeList[count].nodeName === 'BR') {
+            console.log('found br');
+            numberOfBreaks += 1;
+            node = nodeList[count]
+          }
+          count += 1
+        }
+        newRange.setEnd(node, 0);
+        newRange.setStart(node,0)
+        console.log(newRange);
+        const selection = window.getSelection();
+        selection?.removeAllRanges();
+        selection?.addRange(newRange);
+
+        console.log('number of breaks: ', numberOfBreaks, "lastNode:", node);
+
+
+
+        // while (stack.length > 0) {
+        //   if (node.nodeName === 'BR') {
+        //     console.log('found br');
+        //     numberOfBreaks += 1;
+        //   } else {
+        //     console.log(node.firstChild)
+        //     stack.push(node.firstChild);
+        //   }
+        // }
+
+
+
+
+
+        // node = node.endContainer.lastChild
+
+
+        // while (!node=== null) {
+        //   console.log('last child', node);
+        //   if (node.nodeName === 'BR') {
+        //     console.log('found br');
+        //     numberOfBreaks += 1;
+        //   } else {
+        //     node = node.firstChild
+        //   }
+        //
+        //
+        // }
+
+
+        console.log(range);
+
+
+      }
+
+      event.preventDefault()
+      return;
+
+    }
 
     if (this.states.bold) {
       this.handleBold(editor, event.key, indexBold);

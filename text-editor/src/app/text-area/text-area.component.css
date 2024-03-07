@@ -19,3 +19,8 @@
   background: white;
 
 }
+
+#fake_textarea >  br{
+  flex-direction: column;
+  display:inline
+}

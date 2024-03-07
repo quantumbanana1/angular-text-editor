@@ -1,5 +1,5 @@
 <div class="text-editor-container">
-      <div (click)="handleClick($event)" #fake_textarea id="fake_textarea" class="fake_textarea" contenteditable  (keydown)="onKeyChange($event)" >
+      <div (click)="handleClick($event)" (mouseup)="handleSelection()" #fake_textarea id="fake_textarea" class="fake_textarea"  contenteditable  (keydown)="onKeyChange($event)" >
 
       </div>
 </div>
