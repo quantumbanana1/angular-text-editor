@@ -6,7 +6,7 @@ import { last } from 'rxjs';
 
 let indexNull = 0;
 let indexBold = 0;
-let indexBreak = 0
+let indexBreak = 0;
 let newRangeBoldText = false;
 let creatingNewElement = true;
 
@@ -16,6 +16,8 @@ interface ITextState {
   italic: boolean;
   underline: boolean;
 }
+
+//it defines proper ID for new null element by checking previous  null elements' IDs
 
 function createRange(
   node: Node,
@@ -128,6 +130,7 @@ function getNode() {
   const selection = window.getSelection();
   console.log(selection);
   const node = selection.focusNode.parentElement;
+  console.log(node);
   return node;
 }
 
@@ -151,6 +154,8 @@ export class TextAreaComponent {
 
   text: string = '';
   value: string = '';
+
+  editor = this.textEditor.nativeElement;
   constructor(private textEditorService: TextEditorService) {}
 
   applyStateToSelectedText(text: string, state: string) {
@@ -191,7 +196,6 @@ export class TextAreaComponent {
       newElement = true;
     }
 
-
     if (element) {
       if (element.split(' ')[0] === 'bold') {
         if (!this.states.bold && !newElement) {
@@ -223,12 +227,9 @@ export class TextAreaComponent {
     console.log(event.key);
     if (!this.textEditor) return;
 
-
-
     const editor = this.textEditor.nativeElement;
-    const selection = window.getSelection();
-    if (!selection) return;
-
+    // const selection = window.getSelection();
+    // if (!selection) return;
 
     if (event.key === 'Enter') {
       console.log('hitting enter');
@@ -253,7 +254,7 @@ export class TextAreaComponent {
       const endOffSet = range.endOffset;
       console.log(length, endOffSet);
 
-      if (length  > endOffSet) {
+      if (length > endOffSet) {
         range.insertNode(container);
         event.preventDefault();
         indexBreak += 1;
@@ -262,10 +263,11 @@ export class TextAreaComponent {
 
       if (length === endOffSet) {
         const editor = this.textEditor.nativeElement;
-        let node = editor
+        let node = editor;
         let newRange = document.createRange();
-        let numberOfBreaks = 0
-        const foundElement = document.getElementsByClassName(previousElement)[0];
+        let numberOfBreaks = 0;
+        const foundElement =
+          document.getElementsByClassName(previousElement)[0];
         foundElement.insertAdjacentElement('afterend', container);
         console.log('found element', foundElement);
         newRange.selectNode(editor);
@@ -274,39 +276,36 @@ export class TextAreaComponent {
         let nodeList = newRange.endContainer.childNodes;
         let length = nodeList.length;
 
-        if (length ===  1 ) {
-          node = nodeList[0]
+        if (length === 1) {
+          node = nodeList[0];
           nodeList = node.childNodes;
           length = nodeList.length;
-          console.log(nodeList)
+          console.log(nodeList);
         }
 
-        let count = 0
+        let count = 0;
 
         while (length > count) {
           if (nodeList[count].nodeName === 'DIV') {
-            const element  = nodeList[count] as HTMLElement
+            const element = nodeList[count] as HTMLElement;
             console.log(element);
             if (element.className == 'breakContainer') {
               console.log('found br');
               numberOfBreaks += 1;
               console.log('found br');
-              node = element
+              node = element;
             }
           }
-          count += 1
+          count += 1;
         }
-
-        newRange.setEnd(node, 0);
-        newRange.setStart(node,0)
-        console.log(newRange);
         const selection = window.getSelection();
         selection?.removeAllRanges();
+        newRange.setEnd(node, 0);
+        newRange.setStart(node, 0);
+        console.log(newRange);
         selection?.addRange(newRange);
 
-        console.log('number of breaks: ', numberOfBreaks, "lastNode:", node);
-
-
+        console.log('number of breaks: ', numberOfBreaks, 'lastNode:', node);
 
         // while (stack.length > 0) {
         //   if (node.nodeName === 'BR') {
@@ -318,10 +317,7 @@ export class TextAreaComponent {
         //   }
         // }
 
-
-
         // node = node.endContainer.lastChild
-
 
         // while (!node=== null) {
         //   console.log('last child', node);
@@ -334,12 +330,10 @@ export class TextAreaComponent {
         //
         //
         // }
-
       }
 
-      event.preventDefault()
+      event.preventDefault();
       return;
-
     }
 
     if (this.states.bold) {
@@ -357,6 +351,7 @@ export class TextAreaComponent {
     const sel = window.getSelection();
     const range = sel.getRangeAt(0);
     const element = this.getClassElementFromRange(range);
+    console.log(element);
     const className = element.split(' ');
 
     if (element) {
@@ -394,11 +389,18 @@ export class TextAreaComponent {
     const sel = window.getSelection();
     const range = sel.getRangeAt(0);
     const element = this.getClassElementFromRange(range);
+    console.log(element);
     const className = element.split(' ');
+    console.log(className[0]);
 
     if (element) {
       if (className[0] !== 'null') {
         const element: HTMLElement = getNode();
+        console.log(element);
+        if (className[0] === 'br') {
+          console.log('xDDD');
+          this.setNewNullId();
+        }
         const nullTextElement = this.createAndInsertElement(
           'span',
           nullClassName,
@@ -409,6 +411,7 @@ export class TextAreaComponent {
         element.insertAdjacentElement('afterend', nullTextElement);
         updateRange(`null ${indexNull}`);
         creatingNewElement = false;
+        return;
       } else {
         console.log('null element already exists');
       }
@@ -433,6 +436,10 @@ export class TextAreaComponent {
       let startChildNode: NodeListOf<ChildNode> =
         range.startContainer.childNodes;
       if (startChildNode.length > 0) {
+        if (range.startContainer.childNodes[0].nodeName === 'BR') {
+          endNode = 'br';
+          return endNode;
+        }
         //ts-ignore
         endNode = range.startContainer.childNodes[0].lastChild;
       }
@@ -464,6 +471,13 @@ export class TextAreaComponent {
     const currentPosition = getCurrentCursorPosition('fake_textarea');
     setCurrentCursorPosition(currentPosition + cursorAtSamePosistion, editor);
     editor.focus();
+  }
+
+  setNewNullId() {
+    const range = document.createRange();
+    const selection = window.getSelection();
+    const node = this.editor;
+    range.selectNode(node);
   }
 
   ngOnInit() {
