@@ -191,22 +191,6 @@ export class TextAreaComponent {
       newElement = true;
     }
 
-    // if (length === 1 && endOffSet === 1) {
-    //   console.log('one length one offset');
-    //   if (element) {
-    //     if (element.split(' ')[0] === 'bold') {
-    //       if (!this.states.bold) {
-    //         return this.textEditorService.setBold();
-    //       }
-    //     }
-    //
-    //     if (element.split(' ')[0] === 'null') {
-    //       if (!this.states.null) {
-    //         return this.textEditorService.setNull();
-    //       }
-    //     }
-    //   }
-    // }
 
     if (element) {
       if (element.split(' ')[0] === 'bold') {
@@ -248,15 +232,19 @@ export class TextAreaComponent {
 
     if (event.key === 'Enter') {
       console.log('hitting enter');
+      const container = document.createElement('div');
+      container.classList.add('breakContainer');
       const element = document.createElement('br');
       element.classList.add('break');
       element.classList.add(`${indexBreak}`);
+      container.appendChild(element);
+
       const selection = window.getSelection();
       const range: Range = selection?.getRangeAt(0);
       const previousElement = this.getClassElementFromRange(range!);
 
       if (!previousElement) {
-        editor.appendChild(element);
+        editor.appendChild(container);
         indexBreak += 1;
         return;
       }
@@ -266,7 +254,7 @@ export class TextAreaComponent {
       console.log(length, endOffSet);
 
       if (length  > endOffSet) {
-        range.insertNode(element);
+        range.insertNode(container);
         event.preventDefault();
         indexBreak += 1;
         return;
@@ -278,7 +266,7 @@ export class TextAreaComponent {
         let newRange = document.createRange();
         let numberOfBreaks = 0
         const foundElement = document.getElementsByClassName(previousElement)[0];
-        foundElement.insertAdjacentElement('afterend', element);
+        foundElement.insertAdjacentElement('afterend', container);
         console.log('found element', foundElement);
         newRange.selectNode(editor);
         console.log(newRange);
@@ -296,13 +284,19 @@ export class TextAreaComponent {
         let count = 0
 
         while (length > count) {
-          if (nodeList[count].nodeName === 'BR') {
-            console.log('found br');
-            numberOfBreaks += 1;
-            node = nodeList[count]
+          if (nodeList[count].nodeName === 'DIV') {
+            const element  = nodeList[count] as HTMLElement
+            console.log(element);
+            if (element.className == 'breakContainer') {
+              console.log('found br');
+              numberOfBreaks += 1;
+              console.log('found br');
+              node = element
+            }
           }
           count += 1
         }
+
         newRange.setEnd(node, 0);
         newRange.setStart(node,0)
         console.log(newRange);
@@ -326,8 +320,6 @@ export class TextAreaComponent {
 
 
 
-
-
         // node = node.endContainer.lastChild
 
 
@@ -342,10 +334,6 @@ export class TextAreaComponent {
         //
         //
         // }
-
-
-        console.log(range);
-
 
       }
 
